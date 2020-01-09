@@ -83,6 +83,7 @@ void TrafficLight::cycleThroughPhases()
         if (timeSinceLastUpdate >= cycleDuration.count())
         {
             _currentPhase = lightToggleMap[_currentPhase];
+            mq.send(std::move(_currentPhase));
 
             // reset stop watch for next cycle
             lastUpdate = std::chrono::system_clock::now();
@@ -96,5 +97,5 @@ void TrafficLight::cycleThroughPhases()
 std::unordered_map<TrafficLightPhase, TrafficLightPhase> TrafficLight::lightToggleMap = 
 {
     std::make_pair(TrafficLightPhase::red, TrafficLightPhase::green), 
-    std::make_pair(TrafficLightPhase::red, TrafficLightPhase::green)
+    std::make_pair(TrafficLightPhase::green, TrafficLightPhase::red)
 };
