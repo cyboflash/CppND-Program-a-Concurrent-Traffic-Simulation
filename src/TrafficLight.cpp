@@ -23,7 +23,6 @@ void MessageQueue<T>::send(T &&msg)
 
 /* Implementation of class "TrafficLight" */
 
-/* 
 TrafficLight::TrafficLight()
 {
     _currentPhase = TrafficLightPhase::red;
@@ -44,6 +43,7 @@ TrafficLightPhase TrafficLight::getCurrentPhase()
 void TrafficLight::simulate()
 {
     // FP.2b : Finally, the private method „cycleThroughPhases“ should be started in a thread when the public method „simulate“ is called. To do this, use the thread queue in the base class. 
+    threads.emplace_back(std::thread(&TrafficLight::cycleThroughPhases, this));
 }
 
 // virtual function which is executed in a thread
@@ -53,6 +53,36 @@ void TrafficLight::cycleThroughPhases()
     // and toggles the current phase of the traffic light between red and green and sends an update method 
     // to the message queue using move semantics. The cycle duration should be a random value between 4 and 6 seconds. 
     // Also, the while-loop should use std::this_thread::sleep_for to wait 1ms between two cycles. 
+
+    std::random_device rd;
+    std::mt19937 eng(rd());
+    std::uniform_int_distribution<int> distr(4, 6);
+    auto cycleDuration = std::chrono::duration<int>(distr(eng));
+
+    // init stop watch
+    auto lastUpdate = std::chrono::system_clock::now();
+    while (true)
+    {
+        // sleep at every iteration to reduce CPU usage
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // compute time difference to stop watch
+        auto timeSinceLastUpdate = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - lastUpdate).count();
+
+        if (timeSinceLastUpdate >= cycleDuration.count())
+        {
+            _currentPhase = lightToggleMap[_currentPhase];
+
+            // reset stop watch for next cycle
+            lastUpdate = std::chrono::system_clock::now();
+
+            // reset cycle duration for next cycle
+            cycleDuration = std::chrono::duration<int>(distr(eng));
+        }
+    }
 }
 
-*/
+std::unordered_map<TrafficLightPhase, TrafficLightPhase> TrafficLight::lightToggleMap = 
+{
+    std::make_pair(TrafficLightPhase::red, TrafficLightPhase::green), 
+    std::make_pair(TrafficLightPhase::red, TrafficLightPhase::green)
+};
